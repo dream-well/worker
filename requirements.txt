@@ -1,0 +1,2 @@
+bittensor==6.9.3
+ezkl==10.2.7
