@@ -270,9 +270,9 @@ def generateZkProof(synapse: QueryZkProof) -> QueryZkProof:
 
     try:
         bt.logging.info(f"Model session created successfully")
-        model_session = VerifiedModelSession(public_inputs, query_input['model_id'])
-        query_output, proof_time = model_session.gen_proof()
-        model_session.end()
+        with VerifiedModelSession(public_inputs, query_input['model_id']) as model_session:
+            query_output, proof_time = model_session.gen_proof()
+            model_session.end()
     except Exception as e:
         synapse.query_output = "An error occurred"
         bt.logging.error("An error occurred while generating proven output", e)
