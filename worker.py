@@ -74,12 +74,9 @@ def proof_worker(
 
 class VerifiedModelSession:
 
-    def __init__(self, public_inputs=None, model_id=None):
-        if public_inputs is None:
-            public_inputs = []
-        if model_id is None:
-            model_id = [0]
-        self.model_id = model_id[0]
+    def __init__(self, model_id=None):
+        public_inputs = []
+        self.model_id = model_id
         self.session_id = str(uuid.uuid4())
 
         model_path = os.path.join(dir_path, f"model/model_{self.model_id}")
@@ -170,7 +167,8 @@ class VerifiedModelSession:
             traceback.print_exc()
             raise
 
-    def gen_proof(self):
+    def gen_proof(self, public_inputs):
+        self.public_inputs = public_inputs
         try:
             bt.logging.debug("Generating input file")
             self.gen_input_file()
@@ -256,6 +254,11 @@ class VerifiedModelSession:
 
         return None
 
+sessions = {
+    "0": VerifiedModelSession("0"),
+    "0a92bc32ea02abe54159da70aeb541d52c3cba27c8708669eda634e096a86f8b": VerifiedModelSession("0a92bc32ea02abe54159da70aeb541d52c3cba27c8708669eda634e096a86f8b")
+}
+
 @app.post("/generate_proof")
 def generateZkProof(synapse: QueryZkProof) -> QueryZkProof:
     query_input = synapse.query_input
@@ -269,10 +272,10 @@ def generateZkProof(synapse: QueryZkProof) -> QueryZkProof:
         return synapse
 
     try:
-        bt.logging.info(f"Model session created successfully")
-        with VerifiedModelSession(public_inputs, query_input['model_id']) as model_session:
-            query_output, proof_time = model_session.gen_proof()
-            model_session.end()
+        bt.logging.info(f"Public inputs: {public_inputs}")
+        model = sessions.get(str(query_input['model_id'][0]))
+        query_output, proof_time = model.gen_proof(public_inputs)
+        model.end()
     except Exception as e:
         synapse.query_output = "An error occurred"
         bt.logging.error("An error occurred while generating proven output", e)
