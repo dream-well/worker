@@ -11,6 +11,7 @@ from pydantic import BaseModel
 import traceback
 import multiprocessing
 from itertools import chain
+import model0
 
 app = FastAPI()
 
@@ -255,7 +256,6 @@ class VerifiedModelSession:
         return None
 
 sessions = {
-    "0": VerifiedModelSession("0"),
     "0a92bc32ea02abe54159da70aeb541d52c3cba27c8708669eda634e096a86f8b": VerifiedModelSession("0a92bc32ea02abe54159da70aeb541d52c3cba27c8708669eda634e096a86f8b")
 }
 
@@ -273,7 +273,10 @@ def generateZkProof(synapse: QueryZkProof) -> QueryZkProof:
 
     try:
         bt.logging.info(f"Public inputs: {public_inputs}")
-        model = sessions.get(str(query_input['model_id'][0]))
+        model_id = str(query_input['model_id'][0])
+        if model_id == "0":
+            return model0.generateModel0Proof(synapse = synapse)
+        model = sessions.get(model_id)
         query_output, proof_time = model.gen_proof(public_inputs)
         model.end()
     except Exception as e:
