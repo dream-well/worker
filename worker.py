@@ -282,6 +282,9 @@ class QueryZkProof(BaseModel):
     query_input: Optional[Dict] = None
     query_output: Optional[str] = None
 
+total_time = 0
+total_cnt = 0
+
 @app.post("/generate_proof")
 async def generateZkProof(synapse: QueryZkProof) -> QueryZkProof:
     time_in = time.time()
@@ -302,13 +305,14 @@ async def generateZkProof(synapse: QueryZkProof) -> QueryZkProof:
 
     # Run inputs through the model and generate a proof.
     try:
-        model_session = VerifiedModelSession(public_inputs, model_id)
-        # bt.logging.debug("Model session created successfully")
-        synapse.query_output, proof_time = await model_session.gen_proof()
-        # model_session.end()
+        with VerifiedModelSession(public_inputs, model_id) as model_session:
+            model_session = VerifiedModelSession(public_inputs, model_id)
+            # bt.logging.debug("Model session created successfully")
+            synapse.query_output, proof_time = await model_session.gen_proof()
+            # model_session.end()
     except Exception as e:
         synapse.query_output = "An error occurred"
-        bt.logging.error(f"An error occurred while generating proven output\n{e}")
+        print(f"An error occurred while generating proven output\n{e}")
         proof_time = time.time() - time_in
 
     time_out = time.time()
@@ -316,6 +320,13 @@ async def generateZkProof(synapse: QueryZkProof) -> QueryZkProof:
     print(
         f"Total response time {delta_t}s. Proof time: {proof_time}s. "
         f"Overhead time: {delta_t - proof_time}s."
+    )
+    global total_time
+    global total_cnt
+    total_time += delta_t
+    total_cnt += 1
+    print(
+        f"Average response time: {total_time / total_cnt}, cnt: {total_cnt}"
     )
     return synapse
 
