@@ -326,9 +326,9 @@ async def generateZkProof(synapse: QueryZkProof) -> QueryZkProof:
     if model_id != [0]:
         total_time += delta_t
         total_cnt += 1
-    print(
-        f"Average response time: {total_time / total_cnt}, cnt: {total_cnt}"
-    )
+        print(
+            f"Average response time: {total_time / total_cnt}, cnt: {total_cnt}"
+        )
     return synapse
 
 if __name__ == '__main__':
