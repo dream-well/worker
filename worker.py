@@ -17,8 +17,14 @@ app = FastAPI()
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
+cache = {}
+
 def gen_witness(input_path, circuit_path, witness_path, vk_path, srs_path):
     # bt.logging.debug("Generating witness")
+    key = f"{input_path}_{circuit_path}_{witness_path}_{vk_path}_{srs_path}"
+    if key in cache:
+        print("Skip gen witness")
+        return
     res = ezkl.gen_witness(
         input_path,
         circuit_path,
@@ -26,6 +32,7 @@ def gen_witness(input_path, circuit_path, witness_path, vk_path, srs_path):
         vk_path,
         srs_path,
     )
+    cache[key] = True
     # bt.logging.debug(f"Gen witness result: {res}")
 
 
@@ -105,10 +112,10 @@ class VerifiedModelSession:
         self.sample_input_path = os.path.join(model_path, "input.json")
 
         self.witness_path = os.path.join(
-            dir_path, "temp", f"witness_{self.model_name}_{self.session_id}.json"
+            dir_path, "temp", f"witness_{self.model_name}.json"
         )
         self.input_path = os.path.join(
-            dir_path, "temp", f"input_{self.model_name}_{self.session_id}.json"
+            dir_path, "temp", f"input_{self.model_name}.json"
         )
         self.proof_path = os.path.join(
             dir_path, "temp", f"proof_{self.model_name}_{self.session_id}.json"
@@ -260,11 +267,11 @@ class VerifiedModelSession:
         return self
 
     def remove_temp_files(self):
-        if os.path.exists(self.input_path):
-            os.remove(self.input_path)
+        # if os.path.exists(self.input_path):
+        #     os.remove(self.input_path)
 
-        if os.path.exists(self.witness_path):
-            os.remove(self.witness_path)
+        # if os.path.exists(self.witness_path):
+        #     os.remove(self.witness_path)
 
         if os.path.exists(self.proof_path):
             os.remove(self.proof_path)
