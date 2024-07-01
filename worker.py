@@ -13,8 +13,8 @@ from pydantic import BaseModel
 from fastapi import FastAPI
 app = FastAPI()
 
-# dir_path = os.path.dirname(os.path.realpath(__file__))
-dir_path = "/ramdisk"
+dir_path = os.path.dirname(os.path.realpath(__file__))
+# dir_path = "/ramdisk"
 
 cache = {}
 
