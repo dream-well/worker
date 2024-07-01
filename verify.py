@@ -13,7 +13,7 @@ query_output = '{"protocol":null,"instances":[["00010000000000000000000000000000
 response = {
     "deserialized": query_output,
     "uid": 0,
-    "model_id":['0a92bc32ea02abe54159da70aeb541d52c3cba27c8708669eda634e096a86f8b'],
+    "model_id":[0],
     "inputs": [-0.2847691892031461, -0.08110789393296791, 0.6423077381281963, -0.19719430897525503, 0.1303140519756325],
     "response_time": 5.0
 }

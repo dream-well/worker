@@ -19,8 +19,9 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 cache = {}
 
 def gen_witness(input_path, circuit_path, witness_path, vk_path, srs_path):
-    # bt.logging.debug("Generating witness")
+    # print("Generating witness")
     key = f"{input_path}_{circuit_path}_{witness_path}_{vk_path}_{srs_path}"
+    print(key)
     if key in cache:
         print("Skip gen witness")
         return
@@ -32,7 +33,7 @@ def gen_witness(input_path, circuit_path, witness_path, vk_path, srs_path):
         srs_path,
     )
     cache[key] = True
-    # bt.logging.debug(f"Gen witness result: {res}")
+    # print(f"Gen witness result: {res}")
 
 
 async def gen_proof(
@@ -43,7 +44,7 @@ async def gen_proof(
     print(f"gen witness took {time.time() - start}")
     start = time.time()
 
-    # bt.logging.debug("Generating proof")
+    # print("Generating proof")
     res = ezkl.prove(
         witness_path,
         circuit_path,
@@ -52,7 +53,7 @@ async def gen_proof(
         "single",
         srs_path,
     )
-    # bt.logging.debug(f"Proof generated: {proof_path}, result: {res} took {time.time() - start}")
+    # print(f"Proof generated: {proof_path}, result: {res} took {time.time() - start}")
 
 
 async def proof_worker(
@@ -138,22 +139,22 @@ class VerifiedModelSession:
 
         with open(self.input_path, "w", encoding="utf-8") as f:
             json.dump(data, f)
-        # bt.logging.info(f"Input data: {data}")
+        # print(f"Input data: {data}")
 
     def gen_proof_file(self, proof_string, inputs):
         dir_name = os.path.dirname(self.proof_path)
         os.makedirs(dir_name, exist_ok=True)
         proof_json = json.loads(proof_string)
         new_instances = list(chain.from_iterable(inputs))
-        bt.logging.trace(f"New instances: {new_instances}")
+        print(f"New instances: {new_instances}")
         new_instances += proof_json["instances"][0][len(new_instances):]
-        bt.logging.trace(
-            f"New instances after appending with last instances from output: {new_instances}"
-        )
+        # print(
+        #     f"New instances after appending with last instances from output: {new_instances}"
+        # )
         proof_json["instances"] = [new_instances]
         # Enforce EVM transcript type to be used for all proofs, ensuring all are valid for proving on EVM chains
         proof_json["transcript_type"] = "EVM"
-        bt.logging.trace(f"Proof json: {proof_json}")
+        # print(f"Proof json: {proof_json}")
 
         with open(self.proof_path, "w", encoding="utf-8") as f:
             f.write(json.dumps(proof_json))
@@ -174,7 +175,7 @@ class VerifiedModelSession:
                 with open(proof_path, "w", encoding="utf-8") as f:
                     f.write(proof)
                 proof_paths.append(proof_path)
-            # bt.logging.debug(
+            # print(
                 # f"Generating aggregated proof given proof paths: {proof_paths}"
             # )
             path = os.path.join(
@@ -185,23 +186,23 @@ class VerifiedModelSession:
             time_start = time.time()
             ezkl.aggregate(aggregation_snarks=proof_paths, output_path=path)
             time_delta = time.time() - time_start
-            # bt.logging.info(f"Proof aggregation took {time_delta} seconds")
+            # print(f"Proof aggregation took {time_delta} seconds")
             with open(path, "r", encoding="utf-8") as f:
                 aggregated_proof = f.read()
             return aggregated_proof, time_delta
         except Exception as e:
-            bt.logging.error(f"An error occurred during proof aggregation: {e}")
+            print(f"An error occurred during proof aggregation: {e}")
             traceback.print_exc()
             raise
 
     async def gen_proof(self):
         try:
-            # bt.logging.debug("Generating input file")
+            # print("Generating input file")
             self.gen_input_file()
-            # bt.logging.debug("Starting generating proof process...")
+            # print("Starting generating proof process...")
             start_time = time.time()
             # with multiprocessing.Pool(1) as p:
-            #     # bt.logging.debug(
+            #     # print(
             #     #     f"Starting proof generation with paths: {self.input_path}, {self.vk_path}, "
             #     #     f"{self.witness_path}, {self.circuit_path}, {self.pk_path}, {self.proof_path}, "
             #     #     f"{self.srs_path}"
@@ -223,7 +224,7 @@ class VerifiedModelSession:
             )
             end_time = time.time()
             proof_time = end_time - start_time
-            # bt.logging.info(f"Proof generation took {proof_time} seconds")
+            # print(f"Proof generation took {proof_time} seconds")
             with open(self.proof_path, "r", encoding="utf-8") as f:
                 proof_content = f.read()
 
@@ -294,13 +295,13 @@ total_cnt = 0
 @app.post("/generate_proof")
 async def generateZkProof(synapse: QueryZkProof) -> QueryZkProof:
     time_in = time.time()
-    # bt.logging.debug("Received request from validator")
+    # print("Received request from validator")
     # print(f"Input data: {synapse.query_input} \n")
 
     if not synapse.query_input or not synapse.query_input.get(
         "public_inputs", None
     ):
-        bt.logging.error("Received empty query input")
+        print("Received empty query input")
         synapse.query_output = "Empty query input"
         return synapse
 
@@ -313,7 +314,7 @@ async def generateZkProof(synapse: QueryZkProof) -> QueryZkProof:
     try:
         with VerifiedModelSession(public_inputs, model_id) as model_session:
             model_session = VerifiedModelSession(public_inputs, model_id)
-            # bt.logging.debug("Model session created successfully")
+            # print("Model session created successfully")
             synapse.query_output, proof_time = await model_session.gen_proof()
             # model_session.end()
     except Exception as e:
