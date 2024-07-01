@@ -7,15 +7,14 @@ import traceback
 from typing import Dict, Optional
 import uuid
 from itertools import chain
-
-import bittensor as bt
 import ezkl
 from pydantic import BaseModel
 
 from fastapi import FastAPI
 app = FastAPI()
 
-dir_path = os.path.dirname(os.path.realpath(__file__))
+# dir_path = os.path.dirname(os.path.realpath(__file__))
+dir_path = "/ramdisk"
 
 cache = {}
 
@@ -296,7 +295,7 @@ total_cnt = 0
 async def generateZkProof(synapse: QueryZkProof) -> QueryZkProof:
     time_in = time.time()
     # bt.logging.debug("Received request from validator")
-    print(f"Input data: {synapse.query_input} \n")
+    # print(f"Input data: {synapse.query_input} \n")
 
     if not synapse.query_input or not synapse.query_input.get(
         "public_inputs", None
