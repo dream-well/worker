@@ -1,2 +1,2 @@
-bittensor==6.9.3
+fastapi
 ezkl==10.2.7
